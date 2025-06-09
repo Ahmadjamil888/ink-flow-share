@@ -122,7 +122,7 @@ export const BlogCard = ({ post, featured = false }: BlogCardProps) => {
             {post.excerpt}
           </p>
         </CardContent>
-      </Link>
-    );
-  }
+      </Card>
+    </Link>
+  );
 };
