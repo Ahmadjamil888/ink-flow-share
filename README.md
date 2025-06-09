@@ -5,7 +5,7 @@ A modern blog platform built with React, TypeScript, and Tailwind CSS. This plat
 
 ## Project info
 
-**URL**: https://ink-flow-share.verecl.app/
+**URL**: https://ink-flow-share.vercel.app/
 
 ## Features
 
