@@ -9,7 +9,7 @@ export const Header = () => {
   const { user, signOut, isSignedIn } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
-  const [createPostModalOpen, setCreatePostModalOpen] = useState(true);
+  const [createPostModalOpen, setCreatePostModalOpen] = useState(false);
 
   const handleSignIn = () => {
     setAuthMode('signin');
@@ -37,7 +37,7 @@ export const Header = () => {
               {isSignedIn ? (
                 <>
                   <Button 
-                    onClick={() => setCreatePostModalOpen(true)}
+                    onClick={() => setCreatePostModalOpen(false)}
                     className="bg-primary hover:bg-primary/90"
                   >
                     Create New
