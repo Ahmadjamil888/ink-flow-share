@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useAuth } from '@/contexts/AuthContext';
 import { useBlog } from '@/contexts/BlogContext';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -24,26 +25,28 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClos
   const { user } = useAuth();
   const { createPost } = useBlog();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Helper: estimate read time
-  const getReadTime = (text: string): number => {
+  function getReadTime(text: string): number {
     const words = text.trim().split(/\s+/).length;
     return Math.max(1, Math.ceil(words / 200));
-  };
+  }
 
   // Helper: create a short excerpt
-  const getExcerpt = (text: string): string => {
+  function getExcerpt(text: string): string {
     const words = text.trim().split(/\s+/);
     return words.slice(0, 20).join(' ') + (words.length > 20 ? '...' : '');
-  };
+  }
 
-  const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
-  };
+  function handleChange(field: string) {
+    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setFormData(prev => ({ ...prev, [field]: e.target.value }));
+    };
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!user) return;
 
     setIsLoading(true);
 
@@ -52,13 +55,13 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClos
         title: formData.title,
         content: formData.content,
         excerpt: getExcerpt(formData.content),
-        author: user.name,
-        authorId: user.id,
+        author: user?.name || 'Anonymous',
+        authorId: user?.id || 'anonymous',
         readTime: getReadTime(formData.content),
         imageUrl: formData.imageUrl || undefined,
       };
 
-      await createPost(postPayload);
+      await Promise.resolve(createPost(postPayload));
 
       toast({
         title: 'Success',
@@ -67,6 +70,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClos
 
       setFormData({ title: '', content: '', imageUrl: '' });
       onClose();
+      navigate('/');
     } catch (err) {
       toast({
         title: 'Error',
@@ -76,7 +80,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClos
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
