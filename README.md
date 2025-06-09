@@ -5,7 +5,7 @@ A modern blog platform built with React, TypeScript, and Tailwind CSS. This plat
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/ee995164-db59-4230-a75b-f00caae14ed5
+**URL**: https://ink-flow-share.verecl.app/
 
 ## Features
 
@@ -24,10 +24,10 @@ A modern blog platform built with React, TypeScript, and Tailwind CSS. This plat
 
 ```bash
 # Step 1: Clone the repository
-git clone <YOUR_GIT_URL>
+git clone https://github.com/Ahmadjamil888/ink-flow-share.git
 
 # Step 2: Navigate to the project directory
-cd <YOUR_PROJECT_NAME>
+cd ink-flow-share
 
 # Step 3: Install dependencies
 npm install
@@ -171,8 +171,8 @@ Read more: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/cus
 ## Support
 
 For support and questions:
-- Check the [Lovable Documentation](https://docs.lovable.dev/)
-- Visit the [Lovable Discord Community](https://discord.com/channels/1119885301872070706/1280461670979993613)
+
+- Visit the [Aurion softwares](https://aurionsoft.site/)
 
 ---
 
