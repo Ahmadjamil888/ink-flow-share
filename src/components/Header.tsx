@@ -7,9 +7,9 @@ import { CreatePostModal } from './CreatePostModal';
 
 export const Header = () => {
   const { user, signOut, isSignedIn } = useAuth();
-  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(true);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
-  const [createPostModalOpen, setCreatePostModalOpen] = useState(false);
+  const [createPostModalOpen, setCreatePostModalOpen] = useState(true);
 
   const handleSignIn = () => {
     setAuthMode('signin');
