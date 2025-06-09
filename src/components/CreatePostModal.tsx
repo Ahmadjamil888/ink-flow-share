@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,26 +13,32 @@ interface CreatePostModalProps {
   onClose: () => void;
 }
 
-export const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
+export const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     imageUrl: '',
   });
   const [isLoading, setIsLoading] = useState(false);
+
   const { user } = useAuth();
   const { createPost } = useBlog();
   const { toast } = useToast();
 
-  const calculateReadTime = (content: string): number => {
-    const wordsPerMinute = 200;
-    const wordCount = content.split(/\s+/).length;
-    return Math.ceil(wordCount / wordsPerMinute);
+  // Helper: estimate read time
+  const getReadTime = (text: string): number => {
+    const words = text.trim().split(/\s+/).length;
+    return Math.max(1, Math.ceil(words / 200));
   };
 
-  const generateExcerpt = (content: string): string => {
-    const words = content.split(/\s+/).slice(0, 20);
-    return words.join(' ') + (content.split(/\s+/).length > 20 ? '...' : '');
+  // Helper: create a short excerpt
+  const getExcerpt = (text: string): string => {
+    const words = text.trim().split(/\s+/);
+    return words.slice(0, 20).join(' ') + (words.length > 20 ? '...' : '');
+  };
+
+  const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, [field]: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,30 +48,30 @@ export const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
     setIsLoading(true);
 
     try {
-      const newPost = {
+      const postPayload = {
         title: formData.title,
         content: formData.content,
-        excerpt: generateExcerpt(formData.content),
+        excerpt: getExcerpt(formData.content),
         author: user.name,
         authorId: user.id,
-        readTime: calculateReadTime(formData.content),
+        readTime: getReadTime(formData.content),
         imageUrl: formData.imageUrl || undefined,
       };
 
-      createPost(newPost);
-      
+      await createPost(postPayload);
+
       toast({
-        title: "Success",
-        description: "Your blog post has been published!",
+        title: 'Success',
+        description: 'Your blog post has been published!',
       });
 
       setFormData({ title: '', content: '', imageUrl: '' });
       onClose();
-    } catch (error) {
+    } catch (err) {
       toast({
-        title: "Error",
-        description: "Failed to create post. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create post. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -79,7 +84,6 @@ export const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Create New Blog Post</DialogTitle>
         </DialogHeader>
-        
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <Label htmlFor="title">Title</Label>
@@ -87,7 +91,7 @@ export const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
               id="title"
               type="text"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={handleChange('title')}
               required
               placeholder="Enter your blog post title"
               className="text-lg"
@@ -100,17 +104,17 @@ export const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
               id="imageUrl"
               type="url"
               value={formData.imageUrl}
-              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+              onChange={handleChange('imageUrl')}
               placeholder="https://example.com/image.jpg"
             />
           </div>
-          
+
           <div>
             <Label htmlFor="content">Content</Label>
             <Textarea
               id="content"
               value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              onChange={handleChange('content')}
               required
               placeholder="Write your blog post content here..."
               className="min-h-[300px] resize-y"
