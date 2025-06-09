@@ -148,11 +148,9 @@ src/
 
 ## Deployment
 
-### Using Lovable
-Simply open [Lovable](https://lovable.dev/projects/ee995164-db59-4230-a75b-f00caae14ed5) and click on Share → Publish.
 
 ### Custom Domain
-Navigate to Project > Settings > Domains and click Connect Domain.
+vercel Navigate to Project > Settings > Domains and click Connect Domain.
 Read more: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
 
 ## Development
