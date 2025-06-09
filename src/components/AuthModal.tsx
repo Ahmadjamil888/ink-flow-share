@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +14,7 @@ interface AuthModalProps {
   onModeChange: (mode: 'signin' | 'signup') => void;
 }
 
-export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProps) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onModeChange }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -25,63 +24,6 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      if (mode === 'signup') {
-        if (!formData.acceptTerms) {
-          toast({
-            title: "Error",
-            description: "Please accept the terms and conditions",
-            variant: "destructive",
-          });
-          setIsLoading(false);
-          return;
-        }
-        
-        const success = await signUp(formData.name, formData.email, formData.password);
-        if (success) {
-          toast({
-            title: "Success",
-            description: "Account created successfully!",
-          });
-          onClose();
-        } else {
-          toast({
-            title: "Error",
-            description: "User with this email already exists",
-            variant: "destructive",
-          });
-        }
-      } else {
-        const success = await signIn(formData.email, formData.password);
-        if (success) {
-          toast({
-            title: "Success",
-            description: "Signed in successfully!",
-          });
-          onClose();
-        } else {
-          toast({
-            title: "Error",
-            description: "These credentials do not match our records",
-            variant: "destructive",
-          });
-        }
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const resetForm = () => {
     setFormData({
@@ -97,6 +39,70 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
     onModeChange(newMode);
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [id]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      if (mode === 'signup') {
+        if (!formData.acceptTerms) {
+          toast({
+            title: 'Error',
+            description: 'Please accept the terms and conditions',
+            variant: 'destructive',
+          });
+          setIsLoading(false);
+          return;
+        }
+        const success = await signUp(formData.name, formData.email, formData.password);
+        if (success) {
+          toast({
+            title: 'Success',
+            description: 'Account created successfully!',
+          });
+          onClose();
+        } else {
+          toast({
+            title: 'Error',
+            description: 'User with this email already exists',
+            variant: 'destructive',
+          });
+        }
+      } else {
+        const success = await signIn(formData.email, formData.password);
+        if (success) {
+          toast({
+            title: 'Success',
+            description: 'Signed in successfully!',
+          });
+          onClose();
+        } else {
+          toast({
+            title: 'Error',
+            description: 'These credentials do not match our records',
+            variant: 'destructive',
+          });
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error?.message || 'Something went wrong. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -105,7 +111,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
             {mode === 'signin' ? 'Sign In' : 'Sign Up'}
           </DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'signup' && (
             <div>
@@ -114,32 +120,32 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
                 id="name"
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={handleChange}
                 required
                 placeholder="Enter your full name"
               />
             </div>
           )}
-          
+
           <div>
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={handleChange}
               required
               placeholder="Enter your email"
             />
           </div>
-          
+
           <div>
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
               value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              onChange={handleChange}
               required
               placeholder="Enter your password"
             />
@@ -148,13 +154,13 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
           {mode === 'signup' && (
             <div className="flex items-center space-x-2">
               <Checkbox
-                id="terms"
+                id="acceptTerms"
                 checked={formData.acceptTerms}
-                onCheckedChange={(checked) => 
-                  setFormData({ ...formData, acceptTerms: checked as boolean })
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, acceptTerms: !!checked })
                 }
               />
-              <Label htmlFor="terms" className="text-sm">
+              <Label htmlFor="acceptTerms" className="text-sm">
                 I accept the{' '}
                 <a href="#" className="text-primary underline">
                   Terms and Conditions
