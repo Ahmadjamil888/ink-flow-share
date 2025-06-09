@@ -2,6 +2,7 @@
 # The Daily Herald - Blog Platform
 
 A modern blog platform built with React, TypeScript, and Tailwind CSS. This platform allows users to create, read, edit, and manage blog posts with a comprehensive admin dashboard.
+<img src="![image](https://github.com/user-attachments/assets/3e4a20da-ecff-4838-b1b8-b36bb299e9bb)">
 
 ## Project info
 
