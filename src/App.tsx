@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { BlogProvider } from "@/contexts/BlogContext";
 import Index from "./pages/Index";
+import BlogPost from "./pages/BlogPost";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/post/:id" element={<BlogPost />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
