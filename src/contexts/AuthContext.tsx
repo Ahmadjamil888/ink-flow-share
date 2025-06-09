@@ -1,5 +1,10 @@
-
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
 
 export interface User {
   id: string;
@@ -28,46 +33,73 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: '1',
-      name: 'John Doe',
-      email: 'john@example.com',
-      password: 'hashed_password_123',
-      createdAt: new Date('2024-01-01'),
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      password: 'hashed_password_456',
-      createdAt: new Date('2024-01-02'),
-    },
-  ]);
+// Helper to simulate password hashing (DO NOT use in production)
+const hashPassword = (raw: string, userId: string) =>
+  `hashed_${raw}_${userId}`;
 
-  // Load user from localStorage on mount
+const initialUsers: Omit<User, 'createdAt'> & { createdAt: string }[] = [
+  {
+    id: '1',
+    name: 'John Doe',
+    email: 'john@example.com',
+    password: 'hashed_password_123_1',
+    createdAt: '2024-01-01T00:00:00.000Z',
+  },
+  {
+    id: '2',
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    password: 'hashed_password_456_2',
+    createdAt: '2024-01-02T00:00:00.000Z',
+  },
+];
+
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+
+  // On mount: load state from localStorage, or use initial users
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
-    const savedUsers = localStorage.getItem('allUsers');
-    
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    try {
+      const savedUsers = localStorage.getItem('allUsers');
+      if (savedUsers) {
+        const parsed: User[] = JSON.parse(savedUsers).map((u: any) => ({
+          ...u,
+          createdAt: new Date(u.createdAt),
+        }));
+        setUsers(parsed);
+      } else {
+        setUsers(
+          initialUsers.map((u) => ({
+            ...u,
+            createdAt: new Date(u.createdAt),
+          }))
+        );
+      }
+    } catch {
+      setUsers(
+        initialUsers.map((u) => ({
+          ...u,
+          createdAt: new Date(u.createdAt),
+        }))
+      );
     }
-    
-    if (savedUsers) {
-      const parsedUsers = JSON.parse(savedUsers);
-      // Convert date strings back to Date objects
-      const usersWithDates = parsedUsers.map((u: any) => ({
-        ...u,
-        createdAt: new Date(u.createdAt)
-      }));
-      setUsers(usersWithDates);
+
+    try {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        parsed.createdAt = new Date(parsed.createdAt);
+        setUser(parsed);
+      }
+    } catch {
+      setUser(null);
     }
   }, []);
 
-  // Save to localStorage whenever users change
+  // Save users to localStorage
   useEffect(() => {
     localStorage.setItem('allUsers', JSON.stringify(users));
   }, [users]);
@@ -82,7 +114,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   const login = (email: string, password: string): boolean => {
-    const foundUser = users.find(u => u.email === email && u.password === password);
+    const foundUser = users.find(
+      (u) => u.email === email && u.password === hashPassword(password, u.id)
+    );
     if (foundUser) {
       setUser(foundUser);
       return true;
@@ -90,21 +124,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return false;
   };
 
-  const register = (name: string, email: string, password: string): boolean => {
-    // Check if user already exists
-    if (users.some(u => u.email === email)) {
-      return false;
-    }
-
+  const register = (
+    name: string,
+    email: string,
+    password: string
+  ): boolean => {
+    if (users.some((u) => u.email === email)) return false;
+    const id = Date.now().toString();
     const newUser: User = {
-      id: Date.now().toString(),
+      id,
       name,
       email,
-      password: `hashed_${password}_${Date.now()}`, // Simple hashing simulation
+      password: hashPassword(password, id),
       createdAt: new Date(),
     };
-
-    setUsers(prev => [...prev, newUser]);
+    setUsers((prev) => [...prev, newUser]);
     setUser(newUser);
     return true;
   };
@@ -114,16 +148,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteUser = (userId: string): boolean => {
-    if (user?.id === userId) {
-      // Don't allow deleting current user
-      return false;
-    }
-    
-    setUsers(prev => prev.filter(u => u.id !== userId));
+    if (user?.id === userId) return false; // Prevent deleting current user
+    setUsers((prev) => prev.filter((u) => u.id !== userId));
     return true;
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     users,
     login,
@@ -132,5 +162,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     deleteUser,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  );
 };
