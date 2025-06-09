@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,8 +15,8 @@ const Admin = () => {
   const [error, setError] = useState('');
   const { posts } = useBlog();
 
-  const ADMIN_EMAIL = 'ahmadjamildhami@gmail.com';
-  const ADMIN_PASSWORD = 'Ahmadjamildhami*25';
+  const ADMIN_EMAIL = 'admin@gmail.com';
+  const ADMIN_PASSWORD = 'PASSWORD';
 
   // Mock users data
   const mockUsers = [
