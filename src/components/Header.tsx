@@ -37,7 +37,7 @@ export const Header = () => {
               {isSignedIn ? (
                 <>
                   <Button 
-                    onClick={() => setCreatePostModalOpen(false)}
+                    onClick={() => setCreatePostModalOpen(true)}
                     className="bg-primary hover:bg-primary/90"
                   >
                     Create New
