@@ -16,7 +16,10 @@ export interface BlogPost {
 interface BlogContextType {
   posts: BlogPost[];
   createPost: (post: Omit<BlogPost, 'id' | 'publishedAt'>) => void;
+  deletePost: (id: string, userId: string) => boolean;
+  updatePost: (id: string, updates: Partial<BlogPost>, userId: string) => boolean;
   getPostById: (id: string) => BlogPost | undefined;
+  getPostsByAuthor: (authorId: string) => BlogPost[];
 }
 
 const BlogContext = createContext<BlogContextType | undefined>(undefined);
@@ -64,14 +67,43 @@ export const BlogProvider = ({ children }: { children: ReactNode }) => {
     setPosts(prevPosts => [newPost, ...prevPosts]);
   };
 
+  const deletePost = (id: string, userId: string): boolean => {
+    const post = posts.find(p => p.id === id);
+    if (!post || post.authorId !== userId) {
+      return false;
+    }
+    setPosts(prevPosts => prevPosts.filter(p => p.id !== id));
+    return true;
+  };
+
+  const updatePost = (id: string, updates: Partial<BlogPost>, userId: string): boolean => {
+    const post = posts.find(p => p.id === id);
+    if (!post || post.authorId !== userId) {
+      return false;
+    }
+    setPosts(prevPosts => 
+      prevPosts.map(p => 
+        p.id === id ? { ...p, ...updates } : p
+      )
+    );
+    return true;
+  };
+
   const getPostById = (id: string): BlogPost | undefined => {
     return posts.find(post => post.id === id);
+  };
+
+  const getPostsByAuthor = (authorId: string): BlogPost[] => {
+    return posts.filter(post => post.authorId === authorId);
   };
 
   const value = {
     posts,
     createPost,
+    deletePost,
+    updatePost,
     getPostById,
+    getPostsByAuthor,
   };
 
   return <BlogContext.Provider value={value}>{children}</BlogContext.Provider>;
