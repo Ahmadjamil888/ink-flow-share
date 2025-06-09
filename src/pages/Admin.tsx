@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,23 +7,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useBlog } from '@/contexts/BlogContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { EditPostModal } from '@/components/EditPostModal';
+import { BlogPost } from '@/contexts/BlogContext';
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { posts } = useBlog();
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
+  const { posts, deletePost, updatePost } = useBlog();
+  const { users, deleteUser } = useAuth();
+  const { toast } = useToast();
 
   const ADMIN_EMAIL = 'admin@gmail.com';
   const ADMIN_PASSWORD = 'PASSWORD';
-
-  // Mock users data
-  const mockUsers = [
-    { id: '1', name: 'John Doe', email: 'john@example.com', password: 'hashed_password_123' },
-    { id: '2', name: 'Jane Smith', email: 'jane@example.com', password: 'hashed_password_456' },
-  ];
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +33,54 @@ const Admin = () => {
       setError('');
     } else {
       setError('Invalid admin credentials');
+    }
+  };
+
+  const handleDeletePost = (postId: string) => {
+    // Admin can delete any post, so we'll pass the post's authorId
+    const post = posts.find(p => p.id === postId);
+    if (post) {
+      const success = deletePost(postId, post.authorId);
+      if (success) {
+        toast({
+          title: "Success",
+          description: "Blog post deleted successfully.",
+        });
+      }
+    }
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    const success = deleteUser(userId);
+    if (success) {
+      toast({
+        title: "Success",
+        description: "User deleted successfully.",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Cannot delete this user.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditPost = (post: BlogPost) => {
+    setEditingPost(post);
+  };
+
+  const handleSaveEdit = (updates: Partial<BlogPost>) => {
+    if (editingPost) {
+      // Admin can edit any post
+      const success = updatePost(editingPost.id, updates, editingPost.authorId);
+      if (success) {
+        toast({
+          title: "Success",
+          description: "Blog post updated successfully.",
+        });
+        setEditingPost(null);
+      }
     }
   };
 
@@ -107,13 +156,35 @@ const Admin = () => {
               <div className="space-y-4 max-h-96 overflow-y-auto">
                 {posts.map(post => (
                   <div key={post.id} className="border-b border-border pb-3">
-                    <h3 className="font-semibold text-sm">{post.title}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      By {post.author} • {new Date(post.publishedAt).toLocaleDateString()}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      ID: {post.id}
-                    </p>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-sm">{post.title}</h3>
+                        <p className="text-xs text-muted-foreground">
+                          By {post.author} • {new Date(post.publishedAt).toLocaleDateString()}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          ID: {post.id}
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-1 ml-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditPost(post)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeletePost(post.id)}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -123,20 +194,35 @@ const Admin = () => {
           {/* All Users Section */}
           <Card>
             <CardHeader>
-              <CardTitle>All Users ({mockUsers.length})</CardTitle>
+              <CardTitle>All Users ({users.length})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4 max-h-96 overflow-y-auto">
-                {mockUsers.map(user => (
+                {users.map(user => (
                   <div key={user.id} className="border-b border-border pb-3">
-                    <h3 className="font-semibold text-sm">{user.name}</h3>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Password (hashed): {user.password}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      ID: {user.id}
-                    </p>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-sm">{user.name}</h3>
+                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Password (hashed): {user.password}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Joined: {new Date(user.createdAt).toLocaleDateString()}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          ID: {user.id}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 ml-2"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -144,6 +230,13 @@ const Admin = () => {
           </Card>
         </div>
       </main>
+
+      <EditPostModal
+        isOpen={!!editingPost}
+        onClose={() => setEditingPost(null)}
+        post={editingPost}
+        onSave={handleSaveEdit}
+      />
     </div>
   );
 };
